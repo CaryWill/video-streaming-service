@@ -20,12 +20,13 @@ app.get("/video", function (req, res) {
   const videoPath = "testing.mp4";
   const videoSize = fs.statSync("testing.mp4").size;
 
-  const CHUNK_SIZE = 10 ** 6;
-  // request header range likes this: `bytes=5194305-`
-  const start = Number(range.replace(/\D/g, ""));
-  console.log(range, start,'range');
-  // -1 是不是可以用 chunk_size 来替换
-  const end = Math.min(start + CHUNK_SIZE, videoSize - 1);
+  // request header range likes this:
+  // chrome: `bytes=0-`
+  // safari: `bytes=0-1`
+  const start = Number(range.split("=")[1].split("-")[0]);
+  const end = Number(range.split("=")[1].split("-")[1]) || videoSize - 1;
+  console.log(range, start, end, "range");
+
   const contentLength = end - start + 1;
   const headers = {
     "Content-Range": `bytes ${start}-${end}/${videoSize}`,
