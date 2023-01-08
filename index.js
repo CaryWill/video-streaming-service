@@ -12,6 +12,7 @@ app.get("/video", function (req, res) {
   if (!range) {
     res.status(400).send("Requires Range header");
   }
+
   const videoPath = "videos/testing.mp4";
   const videoSize = fs.statSync("videos/testing.mp4").size;
 
@@ -20,7 +21,6 @@ app.get("/video", function (req, res) {
   // safari: `bytes=0-1`
   const start = Number(range.split("=")[1].split("-")[0]);
   const end = Number(range.split("=")[1].split("-")[1]) || videoSize - 1;
-  console.log(range, start, end, "range");
 
   const contentLength = end - start + 1;
   const headers = {
@@ -29,6 +29,7 @@ app.get("/video", function (req, res) {
     "Content-Length": contentLength,
     "Content-Type": "video/mp4",
   };
+
   res.writeHead(206, headers);
   const videoStream = fs.createReadStream(videoPath, { start, end });
   videoStream.pipe(res);
