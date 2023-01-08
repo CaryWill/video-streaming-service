@@ -6,19 +6,14 @@ app.get("/", function (req, res) {
   res.sendFile(__dirname + "/index.html");
 });
 
-// more code will go in here just befor the listening function
-
-app.listen(8000, function () {
-  console.log("Listening on port 8000!");
-});
-
+// 1. 支持 range
 app.get("/video", function (req, res) {
   const range = req.headers.range;
   if (!range) {
     res.status(400).send("Requires Range header");
   }
-  const videoPath = "testing.mp4";
-  const videoSize = fs.statSync("testing.mp4").size;
+  const videoPath = "videos/testing.mp4";
+  const videoSize = fs.statSync("videos/testing.mp4").size;
 
   // request header range likes this:
   // chrome: `bytes=0-`
@@ -37,4 +32,31 @@ app.get("/video", function (req, res) {
   res.writeHead(206, headers);
   const videoStream = fs.createReadStream(videoPath, { start, end });
   videoStream.pipe(res);
+});
+
+// 2. 不支持 range
+var onHeaders = require("on-headers");
+function unsetCacheHeaders() {
+  this.removeHeader("Content-Length");
+}
+app.use(
+  "/videos",
+  express.static("videos", {
+    acceptRanges: false,
+    setHeaders: (res) => {
+      onHeaders(res, unsetCacheHeaders);
+    },
+  })
+);
+
+// 3. 支持 range
+app.use(
+  "/videos2",
+  express.static("videos", {
+    acceptRanges: true,
+  })
+);
+
+app.listen(8000, function () {
+  console.log("Listening on port 8000!");
 });
